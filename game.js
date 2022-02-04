@@ -5,37 +5,69 @@ const game = {
     col:8,
     arr:[],
     ani:{},
-    max:5,
-    actives:0
+    max:25,
+    actives:0,
+    inplay:false,
+    gameBtn:{}
 }
 
 document.addEventListener('DOMContentLoaded', init);
 
 function init(){
     gameArea.innerHTML = "";
+    game.gameBtn =  createNewElement(gameArea, 'button', 'Start','btn')
+
+    game.gameBtn.addEventListener('click',() =>{
+       if(game.gameBtn.textContent =='Start'){
+           game.inplay = true;
+           game.ani = requestAnimationFrame(startGame);
+          (startGame);
+          game.gameBtn.textContent = "Stop";
+       } else{
+           cancelAnimationFrame(game.ani);
+           game.gameBtn.textContent = "Start";
+           game.inplay = false;
+       }
+       
+
+    })
     const main = createNewElement(gameArea, 'div', '','gridContainer');
     buildGrid(main);
-
-    game.ani = requestAnimationFrame(startGame)
 }
 
 
 function startGame(){
-    if(game.actives < game.max){
-        makeActive();
+    const total = game.max > game.arr.length ? game.arr.length : game.max
+    if(game.actives < total){
+        makeActive(makeSelect());
 
     }
-    game.ani = requestAnimationFrame(startGame)
+
+    if(game.inplay){
+        game.ani = requestAnimationFrame(startGame)
+    }
 }  
 
-function makeActive(){
-    game.actives++
+function makeSelect(){
     const sel = Math.floor(Math.random()*game.arr.length); 
-    const timer = Math.floor(Math.random()*4000)+1000
-    const myEle = game.arr[sel]; 
-    myEle.classList.add('active');
+    return game.arr[sel]; 
+}
 
-    setTimeout(removeActive,timer,myEle)
+function makeActive(el){
+    if(el.classList.contains('active')){
+        console.log('Already there');
+        console.log(el);
+        return makeActive(makeSelect());
+
+    }else{
+        game.actives++
+        const timer = Math.floor(Math.random()*4000)+1000
+        el.classList.add('active');
+        setTimeout(removeActive,timer,el);
+
+        return true;
+    }
+    
 }
 
 
@@ -53,12 +85,27 @@ function buildGrid(main){
             if(y==0){ dim.x += " auto";}
             const cell = y*game.col+x+1;
             const el = createNewElement(main,'div',cell,'grid-item');
+
+            el.addEventListener('click',hitButton)
             game.arr.push(el);
         }
     }
 
     main.style.gridTemplateColumns = dim.x;
     main.style.gridTemplateRows = dim.y;
+}
+
+
+function hitButton(e){
+    const el = e.target;
+    console.log(el);
+    if(el.classList.contains('active')){
+        console.log('Hit');
+        removeActive(el);
+    } else{
+        console.log('Miss')
+    }
+
 }
 
 function createNewElement(parent,ele,html,myClass){
